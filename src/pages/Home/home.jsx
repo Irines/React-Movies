@@ -1,3 +1,4 @@
+import "./home.sass";
 function Home() {
     return <div className="home">Home</div>;
 }
