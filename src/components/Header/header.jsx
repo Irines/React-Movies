@@ -32,13 +32,13 @@ function Header() {
                     to="/"
                     className={({ isActive, isPending }) => (isPending ? "pending" : isActive ? "active" : "")}
                 >
-                    <img src="/images/home.svg" className="small-text" />
+                    Home
                 </NavLink>
                 <NavLink
                     to="/contacts"
                     className={({ isActive, isPending }) => (isPending ? "pending" : isActive ? "active" : "")}
                 >
-                    <img src="/images/contacts.svg" className="small-text" />
+                    Contacts
                 </NavLink>
             </div>
             <div className="user-menu">
