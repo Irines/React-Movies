@@ -1,5 +1,5 @@
 import { TableContext } from "context/tableContext";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./table.sass";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
@@ -9,6 +9,14 @@ const Table = () => {
 
     const [editingRow, setEditingRow] = useState(null);
     const [editingField, setEditingField] = useState(null);
+    const tableRef = useRef(null);
+
+    // Init. with the first row focused
+    useEffect(() => {
+      if (tableRef.current) {
+        tableRef.current.focus();
+      }
+    }, []);
 
     const handleEditCategoryDescription = (categoryIndex, description) => {
         updateCategoryDescription(categoryIndex, description);
@@ -102,6 +110,65 @@ const Table = () => {
         });
     };
 
+    const handleKeyDown = (event, categoryIndex, filmIndex) => {
+      const rowIndex = event.target.parentElement.rowIndex;
+      const rowCount = data.length;
+
+      if (!editingRow) {
+        const { key } = event;
+    
+        if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'ArrowLeft' || key === 'ArrowRight') {
+          event.preventDefault(); // Prevents scrolling
+
+          switch (event.key) {
+            case 'ArrowDown':
+              if (rowIndex < rowCount - 1) {
+                if (categoryIndex === null) {
+                  tableRef.current?.rows[rowIndex + 1]?.cells[0]?.children[0]?.focus();
+                } else {
+                  const filmCount = data[categoryIndex]?.films?.length || 0;
+                  if (filmIndex === null || filmIndex === filmCount - 1) {
+                    tableRef.current?.rows[rowIndex + 1]?.cells[0]?.children[0]?.focus();
+                  } else {
+                    tableRef.current?.rows[rowIndex]?.cells[filmIndex + 1]?.children[0]?.focus();
+                  }
+                }
+              }
+              break;
+            case 'ArrowUp':
+              if (rowIndex > 1) {
+                if (categoryIndex === null) {
+                  tableRef.current?.rows[rowIndex - 1]?.cells[0]?.children[0]?.focus();
+                } else {
+                  const filmCount = data[categoryIndex]?.films?.length || 0;
+                  if (filmIndex === null || filmIndex === 0) {
+                    tableRef.current?.rows[rowIndex - 1]?.cells[0]?.children[0]?.focus();
+                  } else {
+                    tableRef.current?.rows[rowIndex]?.cells[filmIndex - 1]?.children[0]?.focus();
+                  }
+                }
+              }
+              break;
+            case 'ArrowLeft':
+              if (filmIndex !== null && filmIndex > 0) {
+                tableRef.current?.rows[rowIndex]?.cells[filmIndex - 1]?.children[0]?.focus();
+              }
+              break;
+            case 'ArrowRight':
+              if (categoryIndex !== null) {
+                const filmCount = data[categoryIndex]?.films?.length || 0;
+                if (filmIndex === null || filmIndex < filmCount - 1) {
+                  tableRef.current?.rows[rowIndex]?.cells[filmIndex + 1]?.children[0]?.focus();
+                }
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    };    
+
     return (
         <div className="table-container">
             <table className="table">
@@ -118,9 +185,8 @@ const Table = () => {
                     {data.map((category, categoryIndex) => (
                         <React.Fragment key={categoryIndex}>
                             <tr>
-                                {/* <td onClick={() => toggleCategory(categoryIndex)}>{category.name}</td> */}
                                 <td>
-                                    <td>
+
                                         {editingRow === categoryIndex && editingField === "name" ? (
                                             <input
                                                 type="text"
@@ -135,11 +201,12 @@ const Table = () => {
                                                     setEditingRow(categoryIndex);
                                                     setEditingField("name");
                                                 }}
+                                                tabIndex={0}
+                                                onKeyDown={(event) => handleKeyDown(event, categoryIndex, 0)}
                                             >
                                                 {category.name}
                                             </span>
                                         )}
-                                    </td>
                                 </td>
                                 <td>
                                     <input
@@ -165,6 +232,8 @@ const Table = () => {
                                                 setEditingRow(categoryIndex);
                                                 setEditingField("description");
                                             }}
+                                            tabIndex={0} 
+                                            onKeyDown={(event) => handleKeyDown(event, categoryIndex, 0)}
                                         >
                                             {category.description}
                                         </span>
@@ -204,6 +273,10 @@ const Table = () => {
                                                         setEditingRow(categoryIndex);
                                                         setEditingField(`filmName_${filmIndex}`);
                                                     }}
+                                                    tabIndex={0} // tabindex to make field focusable
+                                                    onKeyDown={(event) =>
+                                                        handleKeyDown(event, categoryIndex, filmIndex)
+                                                    }
                                                 >
                                                     {film.name}
                                                 </span>
@@ -240,6 +313,10 @@ const Table = () => {
                                                         setEditingRow(categoryIndex);
                                                         setEditingField(`filmDescription_${filmIndex}`);
                                                     }}
+                                                    tabIndex={0} // tabindex to make field focusable
+                                                    onKeyDown={(event) =>
+                                                        handleKeyDown(event, categoryIndex, filmIndex)
+                                                    }
                                                 >
                                                     {film.description}
                                                 </span>
